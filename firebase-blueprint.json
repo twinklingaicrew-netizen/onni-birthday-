@@ -1,0 +1,62 @@
+{
+  "entities": {
+    "EventInfo": {
+      "title": "Event Information",
+      "description": "Details about the first birthday party",
+      "type": "object",
+      "properties": {
+        "babyName": { "type": "string" },
+        "babyNameEn": { "type": "string" },
+        "birthDate": { "type": "string", "format": "date" },
+        "eventDate": { "type": "string", "format": "date-time" },
+        "locationName": { "type": "string" },
+        "address": { "type": "string" },
+        "naverMapUrl": { "type": "string" },
+        "parentsNames": { "type": "string" },
+        "contactMathers": { "type": "string" },
+        "contactFathers": { "type": "string" },
+        "mainPhotos": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "required": ["babyName", "eventDate", "locationName"]
+    },
+    "GuestbookMessage": {
+      "title": "Guestbook Message",
+      "description": "A message from a guest",
+      "type": "object",
+      "properties": {
+        "sender": { "type": "string" },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["sender", "content", "createdAt"]
+    },
+    "GalleryPhoto": {
+      "title": "Gallery Photo",
+      "description": "A photo in the album",
+      "type": "object",
+      "properties": {
+        "url": { "type": "string" },
+        "description": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["url", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/config/main": {
+      "schema": "EventInfo",
+      "description": "Global event configuration"
+    },
+    "/guestbook/{messageId}": {
+      "schema": "GuestbookMessage",
+      "description": "Messages from guests"
+    },
+    "/gallery/{photoId}": {
+      "schema": "GalleryPhoto",
+      "description": "Photos for the album"
+    }
+  }
+}

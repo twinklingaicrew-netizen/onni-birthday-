@@ -1,0 +1,8 @@
+{
+  "name": "첫돌 모바일 초대장 - 온이의 첫 생일",
+  "description": "세련된 디자인의 첫돌 모바일 초대장입니다. 사진 업로드, 앨범, 캘린더 연동, 네이버 지도 연동 및 방명록 기능을 제공합니다.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": []
+}

@@ -1,0 +1,103 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isSignedIn() && 
+             request.auth.token.email == "sfooki86@gmail.com" && 
+             request.auth.token.email_verified == true;
+    }
+    
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+    
+    function incoming() {
+      return request.resource.data;
+    }
+    
+    function existing() {
+      return resource.data;
+    }
+
+    // Validation Blueprints
+    function isValidEventInfo(data) {
+      return data.keys().hasAll([
+               'babyName', 'babyNameEn', 'birthDate', 'eventDate', 
+               'locationName', 'address', 'naverMapUrl', 'parentsNames', 
+               'fatherName', 'motherName', 'brotherName', 
+               'fatherContact', 'motherContact', 'greetingText', 
+               'mainPhotos', 'bgmUrl'
+             ]) &&
+             data.keys().size() == 16 &&
+             data.babyName is string && data.babyName.size() <= 100 &&
+             data.babyNameEn is string && data.babyNameEn.size() <= 100 &&
+             data.birthDate is string &&
+             data.eventDate is string &&
+             data.locationName is string && data.locationName.size() <= 200 &&
+             data.address is string && data.address.size() <= 500 &&
+             data.naverMapUrl is string && data.naverMapUrl.size() <= 2000 &&
+             data.parentsNames is string && data.parentsNames.size() <= 200 &&
+             data.fatherName is string && data.fatherName.size() <= 100 &&
+             data.motherName is string && data.motherName.size() <= 100 &&
+             data.brotherName is string && data.brotherName.size() <= 100 &&
+             data.fatherContact is string && data.fatherContact.size() <= 100 &&
+             data.motherContact is string && data.motherContact.size() <= 100 &&
+             data.greetingText is string && data.greetingText.size() <= 3000 &&
+             data.mainPhotos is list && data.mainPhotos.size() <= 10 &&
+             data.bgmUrl is string && data.bgmUrl.size() <= 2000;
+    }
+
+    function isValidGuestbookMessage(data) {
+      return data.keys().hasAll(['sender', 'content', 'createdAt']) &&
+             data.keys().size() == 3 &&
+             data.sender is string && data.sender.size() <= 100 &&
+             data.content is string && data.content.size() <= 2000 &&
+             data.createdAt == request.time;
+    }
+
+    function isValidGalleryPhoto(data) {
+      return data.keys().hasAll(['url', 'createdAt']) &&
+             data.keys().size() == 2 &&
+             data.url is string && data.url.size() <= 2000000 &&
+             data.createdAt == request.time;
+    }
+
+    // Connection test path
+    match /test/connection {
+      allow read: if true;
+    }
+
+    // Event Info
+    match /config/main {
+      allow read: if true; 
+      allow write: if isAdmin() && isValidEventInfo(incoming());
+    }
+
+    // Guestbook
+    match /guestbook/{messageId} {
+      allow read, list: if true;
+      allow create: if isValidId(messageId) && isValidGuestbookMessage(incoming());
+      // Only admin can delete messages
+      allow delete: if isAdmin();
+    }
+
+    // Gallery
+    match /gallery/{photoId} {
+      allow read, list: if true;
+      allow create: if isAdmin() && isValidId(photoId) && isValidGalleryPhoto(incoming());
+      allow delete: if isAdmin();
+    }
+  }
+}
