@@ -166,6 +166,7 @@ export default function App() {
   const [eventInfo, setEventInfo] = useState<EventInfo>(DEFAULT_EVENT_INFO);
   const [messages, setMessages] = useState<GuestbookMessage[]>([]);
   const [photos, setPhotos] = useState<GalleryPhoto[]>([]);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [user, setUser] = useState(auth.currentUser);
   const [isAdminMode, setIsAdminMode] = useState(false);
 
@@ -421,11 +422,71 @@ export default function App() {
                       viewport={{ once: true }}
                       transition={{ delay: idx * 0.05 }}
                       className="aspect-square bg-slate-100 overflow-hidden rounded-xl shadow-sm cursor-zoom-in"
+                      onClick={() => setLightboxIndex(idx)}
                     >
                       <img src={p.url} alt="" className="w-full h-full object-cover transition-transform hover:scale-110" />
                     </motion.div>
                   ))}
                 </div>
+
+                {/* 라이트박스 */}
+                <AnimatePresence>
+                  {lightboxIndex !== null && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
+                      onClick={() => setLightboxIndex(null)}
+                    >
+                      {/* 닫기 버튼 */}
+                      <button
+                        className="absolute top-4 right-4 text-white bg-white/20 rounded-full p-2 z-50"
+                        onClick={() => setLightboxIndex(null)}
+                      >
+                        <X size={24} />
+                      </button>
+
+                      {/* 이전 버튼 */}
+                      {lightboxIndex > 0 && (
+                        <button
+                          className="absolute left-4 text-white bg-white/20 rounded-full p-2 z-50"
+                          onClick={(e) => { e.stopPropagation(); setLightboxIndex(lightboxIndex - 1); }}
+                        >
+                          <ChevronLeft size={28} />
+                        </button>
+                      )}
+
+                      {/* 사진 */}
+                      <motion.img
+                        key={lightboxIndex}
+                        initial={{ scale: 0.85, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.85, opacity: 0 }}
+                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                        src={photos[lightboxIndex].url}
+                        alt=""
+                        className="max-w-[90vw] max-h-[80vh] object-contain rounded-xl shadow-2xl"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+
+                      {/* 다음 버튼 */}
+                      {lightboxIndex < photos.length - 1 && (
+                        <button
+                          className="absolute right-4 text-white bg-white/20 rounded-full p-2 z-50"
+                          onClick={(e) => { e.stopPropagation(); setLightboxIndex(lightboxIndex + 1); }}
+                        >
+                          <ChevronRight size={28} />
+                        </button>
+                      )}
+
+                      {/* 사진 카운터 */}
+                      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/70 text-sm">
+                        {lightboxIndex + 1} / {photos.length}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             )}
 
